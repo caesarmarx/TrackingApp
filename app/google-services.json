@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "219070895830",
+    "firebase_url": "https://trackingapp-c6d85.firebaseio.com",
+    "project_id": "trackingapp-c6d85",
+    "storage_bucket": "trackingapp-c6d85.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:219070895830:android:ef7a63855637abb6",
+        "android_client_info": {
+          "package_name": "hitec.com"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "219070895830-qhgjubr4f5j2i7i8do3uolvologs7kit.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "hitec.com",
+            "certificate_hash": "77b4f98ed8ba18efb9f717fc7695417cf2964cd9"
+          }
+        },
+        {
+          "client_id": "219070895830-mne2b426mcteansmd7456ddi3rsqekbh.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjZwZPaE5z2if4uh9op8gSem3nQxSrV48"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "219070895830-mne2b426mcteansmd7456ddi3rsqekbh.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
