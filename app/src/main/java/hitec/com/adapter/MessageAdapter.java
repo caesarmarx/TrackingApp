@@ -1,7 +1,8 @@
 package hitec.com.adapter;
 
+import android.content.Context;
+import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,18 +18,17 @@ import butterknife.Bind;
 import butterknife.ButterKnife;
 import hitec.com.R;
 import hitec.com.model.MessageItem;
-import hitec.com.model.UserItem;
 import hitec.com.ui.UserDetailActivity;
-import hitec.com.util.SharedPrefManager;
+import hitec.com.util.DateUtil;
 import hitec.com.util.URLManager;
 
 public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageViewHolder> {
 
-    private UserDetailActivity parent;
+    private Context parent;
     private List<MessageItem> items = new ArrayList<>();
     private String username;
 
-    public MessageAdapter(UserDetailActivity parent, String username) {
+    public MessageAdapter(Context parent, String username) {
         this.parent = parent;
         this.username = username;
     }
@@ -45,16 +45,31 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         MessageItem item = items.get(position);
 
         if(username.equals(item.getFromUser())) {
-            holder.tvUserName.setText("To " + item.getToUser());
+            holder.tvUserName.setText(item.getToUser());
+            holder.ivStatus.setBackground(parent.getResources().getDrawable(R.drawable.ic_send));
         }
         else {
-            holder.tvUserName.setText("From " + item.getFromUser());
+            holder.tvUserName.setText(item.getFromUser());
+            holder.ivStatus.setBackground(parent.getResources().getDrawable(R.drawable.ic_receive));
         }
         holder.tvMessage.setText(item.getMessage());
-        holder.tvTime.setText(item.getTIme());
+        holder.tvMessage.setSelected(true);
+        holder.tvTime.setText(DateUtil.getSimpleFormat(item.getTime()));
+
+        holder.tvUserName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(parent, UserDetailActivity.class);
+                intent.putExtra("username", holder.tvUserName.getText().toString());
+                parent.startActivity(intent);
+            }
+        });
 
         if(!item.getImageURL().isEmpty() && item.getImageURL() != null) {
             ImageLoader.getInstance().displayImage(URLManager.getImageURL() + item.getImageURL(), holder.ivImage);
+            holder.ivImage.setVisibility(View.VISIBLE);
+        } else {
+            holder.ivImage.setVisibility(View.GONE);
         }
     }
 
@@ -91,6 +106,8 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         TextView tvTime;
         @Bind(R.id.iv_image)
         ImageView ivImage;
+        @Bind(R.id.iv_status)
+        ImageView ivStatus;
 
         public MessageViewHolder(View view) {
             super(view);

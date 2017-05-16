@@ -27,7 +27,6 @@ public class GetUserMessagesTask extends AsyncTask<String, Void, GetUserMessages
     protected GetUserMessagesResponseVO doInBackground(String... params) {
         GetUserMessagesProxy simpleProxy = new GetUserMessagesProxy();
         username = params[0];
-
         try {
             final GetUserMessagesResponseVO responseVo = simpleProxy.run(username);
 

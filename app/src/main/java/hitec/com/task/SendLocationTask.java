@@ -16,6 +16,7 @@ public class SendLocationTask extends AsyncTask<String, Void, SendLocationRespon
     private String sender;
     private String latitude;
     private String longitude;
+    private String tracktime;
 
     public SendLocationTask() {
     }
@@ -31,8 +32,9 @@ public class SendLocationTask extends AsyncTask<String, Void, SendLocationRespon
         sender = params[0];
         latitude = params[1];
         longitude = params[2];
+        tracktime = params[3];
         try {
-            final SendLocationResponseVO responseVo = simpleProxy.run(sender, latitude, longitude);
+            final SendLocationResponseVO responseVo = simpleProxy.run(sender, latitude, longitude, tracktime);
 
             return responseVo;
         } catch (Exception e) {

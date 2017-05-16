@@ -41,7 +41,7 @@ public class LocationAdapter extends RecyclerView.Adapter<LocationAdapter.Locati
         holder.tvAddress.setText(item.getAddress());
         holder.tvLatitude.setText(item.getLatitude());
         holder.tvLongitude.setText(item.getLongitude());
-        holder.tvTime.setText(item.getTime());
+        holder.tvTime.setText(item.getTime().split(" ")[1]);
     }
 
     public LocationItem getItem(int pos) {

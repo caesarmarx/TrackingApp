@@ -1,6 +1,5 @@
 package hitec.com.adapter;
 
-import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,8 +16,6 @@ import butterknife.ButterKnife;
 import hitec.com.R;
 import hitec.com.model.UserItem;
 import hitec.com.ui.SelectUserActivity;
-import hitec.com.ui.UserDetailActivity;
-import hitec.com.ui.UserListActivity;
 import hitec.com.util.SharedPrefManager;
 
 public class SelectUserAdapter extends RecyclerView.Adapter<SelectUserAdapter.UserViewHolder> {

@@ -12,16 +12,18 @@ import okhttp3.RequestBody;
 
 public class SendLocationProxy extends BaseProxy {
 
-    public SendLocationResponseVO run(String sender, String latitude, String longitude) throws IOException {
+    public SendLocationResponseVO run(String sender, String latitude, String longitude, String tracktime) throws IOException {
         SendLocationRequestVO requestVo = new SendLocationRequestVO();
         requestVo.sender = sender;
         requestVo.latitude = latitude;
         requestVo.longitude = longitude;
+        requestVo.time = tracktime;
 
         FormBody.Builder formBuilder = new FormBody.Builder();
         formBuilder.add("sender", requestVo.sender);
         formBuilder.add("latitude", requestVo.latitude);
         formBuilder.add("longitude", requestVo.longitude);
+        formBuilder.add("time", requestVo.time);
 
         RequestBody formBody = formBuilder.build();
 

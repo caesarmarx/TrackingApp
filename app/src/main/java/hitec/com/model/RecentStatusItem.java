@@ -5,12 +5,14 @@ public class RecentStatusItem {
     private String message;
     private String imageURL;
     private String time;
+    private int status;
 
     public RecentStatusItem() {
         username = "";
         message = "";
         imageURL = "";
         time = "";
+        status = 0;
     }
 
     public void setUserName(String value) {
@@ -43,5 +45,13 @@ public class RecentStatusItem {
 
     public String getTIme() {
         return time;
+    }
+
+    public void setStatus(int value) {
+        this.status = value;
+    }
+
+    public int getStatus() {
+        return status;
     }
 }

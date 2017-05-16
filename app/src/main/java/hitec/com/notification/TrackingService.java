@@ -23,8 +23,11 @@ import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import hitec.com.db.LocationDB;
 import hitec.com.event.GetRecentStatusEvent;
 import hitec.com.event.SendLocationEvent;
+import hitec.com.event.SendOfflineLocationEvent;
+import hitec.com.model.LocationItem;
 import hitec.com.proxy.BaseProxy;
 import hitec.com.proxy.SendLocationProxy;
 import hitec.com.task.SendLocationTask;
@@ -36,8 +39,9 @@ import hitec.com.util.SharedPrefManager;
 import hitec.com.util.TrackGPS;
 import hitec.com.vo.GetRecentStatusResponseVO;
 import hitec.com.vo.SendLocationResponseVO;
+import hitec.com.vo.SendOfflineLocationResponseVO;
 
-public class TrackingService extends Service {
+public class TrackingService extends Service implements LocationListener{
     private Context ctx;
     private static Timer timer = new Timer();
 
@@ -71,10 +75,26 @@ public class TrackingService extends Service {
         SendLocationResponseVO responseVO = event.getResponse();
         if(responseVO != null && responseVO.success == SendLocationProxy.RESPONSE_SUCCESS) {
             Log.v("SendLocation", "Success");
-            SharedPrefManager.getInstance(ctx).saveSentFlag(true);
         } else {
             Log.v("SendLocation", "Failed");
-            SharedPrefManager.getInstance(ctx).saveSentFlag(false);
+            LocationDB locationDB = new LocationDB(ctx);
+            LocationItem item = new LocationItem();
+            item.setLatitude(SharedPrefManager.getInstance(ctx).getLatitude());
+            item.setLongitude(SharedPrefManager.getInstance(ctx).getLongitude());
+            item.setTime(SharedPrefManager.getInstance(ctx).getTrackingTime());
+            item.setSend(0);
+            locationDB.addLocation(item);
+        }
+    }
+
+    @Subscribe
+    public void onSendOfflineLocationEvent(SendOfflineLocationEvent event) {
+        SendOfflineLocationResponseVO responseVO = event.getResponse();
+        if(responseVO != null && responseVO.success == SendLocationProxy.RESPONSE_SUCCESS) {
+            LocationDB locationDB = new LocationDB(ctx);
+            locationDB.updateSendStatus(responseVO.id);
+        } else {
+            Log.v("SendLocation", "Failed");
         }
     }
 
@@ -86,17 +106,18 @@ public class TrackingService extends Service {
                 locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 300000, 0, mLocationListener);
             if (locationManager.getAllProviders().contains(LocationManager.GPS_PROVIDER))
                 locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 300000, 0, mLocationListener);
+
             EventBus.getDefault().register(this);
         } catch (SecurityException ex) {
             ex.printStackTrace();
         }
     }
 
-    private void sendLocation(double latitude, double longitude) {
+    private void sendLocation(double latitude, double longitude, String time) {
         String sender = SharedPrefManager.getInstance(getApplicationContext()).getUsername();
 
         SendLocationTask task = new SendLocationTask();
-        task.execute(sender, String.valueOf(latitude), String.valueOf(longitude));
+        task.execute(sender, String.valueOf(latitude), String.valueOf(longitude), time);
     }
 
     private final LocationListener mLocationListener = new LocationListener() {
@@ -110,9 +131,8 @@ public class TrackingService extends Service {
                 SharedPrefManager.getInstance(ctx).saveLatitude(String.valueOf(location.getLatitude()));
                 SharedPrefManager.getInstance(ctx).saveLongitude(String.valueOf(location.getLongitude()));
                 SharedPrefManager.getInstance(ctx).saveTrackingTime(DateUtil.getCurDateTime());
-                SharedPrefManager.getInstance(ctx).saveSentFlag(false);
 
-                sendLocation(location.getLatitude(), location.getLongitude());
+                sendLocation(location.getLatitude(), location.getLongitude(), DateUtil.getCurDateTime());
 
             } catch (SecurityException ex) {
                 ex.printStackTrace();
@@ -134,4 +154,24 @@ public class TrackingService extends Service {
 
         }
     };
+
+    @Override
+    public void onLocationChanged(Location location) {
+
+    }
+
+    @Override
+    public void onStatusChanged(String s, int i, Bundle bundle) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String s) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String s) {
+
+    }
 }

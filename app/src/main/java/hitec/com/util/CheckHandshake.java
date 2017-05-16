@@ -8,6 +8,7 @@ import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -71,7 +72,10 @@ public final class CheckHandshake {
             // Create an ssl socket factory with our all-trusting manager
             final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
-            OkHttpClient.Builder builder = new OkHttpClient.Builder();
+            OkHttpClient.Builder builder = new OkHttpClient.Builder()
+                    .connectTimeout(2, TimeUnit.SECONDS)
+                    .writeTimeout(3, TimeUnit.SECONDS)
+                    .readTimeout(10, TimeUnit.SECONDS);
             builder.sslSocketFactory(sslSocketFactory);
             builder.hostnameVerifier(new HostnameVerifier() {
                 @Override

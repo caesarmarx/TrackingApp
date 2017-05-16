@@ -74,7 +74,6 @@ public class SelectUserActivity extends AppCompatActivity {
         userList.setAdapter(adapter);
 
         progressDialog = new ProgressDialog(this);
-        startService(new Intent(SelectUserActivity.this, TrackingService.class));
         getUsers();
     }
 

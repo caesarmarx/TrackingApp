@@ -45,4 +45,15 @@ public class DateUtil {
         return sbBuffer.toString();
     }
 
+    public static String getSimpleFormat(String datetime) {
+        String date = datetime.split(" ")[0];
+        String time = datetime.split(" ")[1];
+        date = date.split("-")[1] + "-" + date.split("-")[2];
+        time = time.split(":")[0] + ":" + time.split(":")[1];
+        String completeTime = date + "\n" + time;
+
+        return completeTime;
+
+    }
+
 }

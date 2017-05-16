@@ -1,16 +1,28 @@
 package hitec.com.model;
 
 public class LocationItem {
+    private String id;
     private String address;
     private String time;
     private String latitude;
     private String longitude;
+    private int sent;
 
     public LocationItem() {
+        id = "";
         address = "";
         time = "";
         latitude = "";
         longitude = "";
+        sent = 0;
+    }
+
+    public void setID(String value) {
+        this.id = value;
+    }
+
+    public String getID() {
+        return id;
     }
 
     public void setAddress(String value) {
@@ -43,5 +55,13 @@ public class LocationItem {
 
     public String getLongitude() {
         return this.longitude;
+    }
+
+    public void setSend(int value) {
+        this.sent = value;
+    }
+
+    public int getSend() {
+        return sent;
     }
 }

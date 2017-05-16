@@ -17,6 +17,9 @@ public class SharedPrefManager {
     private static final String TAG_TRACKING_TIME = "tagtime";
     private static final String TAG_SENT = "tagsent";
 
+    private static final String TAG_USER_UPDATE_TIME = "taguserupdate";
+    private static final String TAG_USER_MESSAGE_UPDATE_TIME = "tagusermessageupdate";
+
     private static SharedPrefManager mInstance;
     private static Context mCtx;
 
@@ -161,5 +164,31 @@ public class SharedPrefManager {
     public boolean getSentFlag() {
         SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
         return  sharedPreferences.getBoolean(TAG_SENT, false);
+    }
+
+    public boolean saveUserUpdateTime(String time) {
+        SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(TAG_USER_UPDATE_TIME, time);
+        editor.apply();
+        return true;
+    }
+
+    public String getUserUpdateTime() {
+        SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        return  sharedPreferences.getString(TAG_USER_UPDATE_TIME, "1990-01-01 00:00:00");
+    }
+
+    public boolean saveUserMessageUpdateTime(String user, String time) {
+        SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(TAG_USER_MESSAGE_UPDATE_TIME + "_" + user, time);
+        editor.apply();
+        return true;
+    }
+
+    public String getUserMessageUpdateTime(String user) {
+        SharedPreferences sharedPreferences = mCtx.getSharedPreferences(SHARED_PREF_NAME, Context.MODE_PRIVATE);
+        return  sharedPreferences.getString(TAG_USER_MESSAGE_UPDATE_TIME + "_" + user, "1990-01-01 00:00:00");
     }
 }

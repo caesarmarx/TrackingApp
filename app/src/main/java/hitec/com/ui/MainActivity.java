@@ -90,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
             ActivityCompat.requestPermissions(this,
                     mPermission, REQUEST_CODE_PERMISSION);
         }
-
+//        startService(new Intent(MainActivity.this, TrackingService.class));
     }
 
     private void turnGPSOn(){
@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.show();
 
         String token = SharedPrefManager.getInstance(this).getDeviceToken();
-
+//        token = "12345";
         if (token == null) {
             progressDialog.dismiss();
             Toast.makeText(this, "Token not generated", Toast.LENGTH_LONG).show();

@@ -2,7 +2,6 @@ package hitec.com.adapter;
 
 import android.content.Intent;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,21 +13,20 @@ import java.util.List;
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import hitec.com.R;
+import hitec.com.fragment.UserFragment;
 import hitec.com.model.UserItem;
-import hitec.com.ui.HomeActivity;
 import hitec.com.ui.UserDetailActivity;
-import hitec.com.ui.UserListActivity;
 import hitec.com.util.SharedPrefManager;
 
 public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder> {
 
-    private UserListActivity parent;
+    private UserFragment parent;
     private int usertype;
     private List<UserItem> items = new ArrayList<>();
 
-    public UserAdapter(UserListActivity parent) {
+    public UserAdapter(UserFragment parent) {
         this.parent = parent;
-        this.usertype = SharedPrefManager.getInstance(parent).getUserType();
+        this.usertype = SharedPrefManager.getInstance(parent.getActivity()).getUserType();
     }
 
     @Override
@@ -50,7 +48,7 @@ public class UserAdapter extends RecyclerView.Adapter<UserAdapter.UserViewHolder
             public void onClick(View view) {
                 int position = (int)view.getTag();
                 UserItem item = items.get(position);
-                Intent intent = new Intent(parent, UserDetailActivity.class);
+                Intent intent = new Intent(parent.getActivity(), UserDetailActivity.class);
                 intent.putExtra("username", item.getUsername());
                 parent.startActivity(intent);
             }

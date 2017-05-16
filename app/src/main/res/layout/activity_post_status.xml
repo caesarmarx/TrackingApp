@@ -43,6 +43,7 @@
         android:id="@+id/iv_image"
         android:layout_width="240dp"
         android:layout_height="240dp"
+        android:contentDescription="@string/app_name"
         android:layout_gravity="center_horizontal"/>
 
     <Button

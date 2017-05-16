@@ -19,6 +19,10 @@ public class URLManager {
         return ApplicationContext.HTTP_HOST + "/sendLocation.php";
     }
 
+    public static String getSendOfflineLocationURL() {
+        return ApplicationContext.HTTP_HOST + "/sendOfflineLocation.php";
+    }
+
     public static String getUserMessagesURL() {
         return ApplicationContext.HTTP_HOST + "/GetUserMessages.php";
     }

@@ -1,5 +1,7 @@
 package hitec.com.ui;
 
+import android.app.DatePickerDialog;
+import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
@@ -9,6 +11,8 @@ import android.support.v7.widget.RecyclerView;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -16,14 +20,18 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Calendar;
 
 import butterknife.Bind;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
+import butterknife.OnTouch;
 import hitec.com.ApplicationContext;
 import hitec.com.R;
 import hitec.com.adapter.MessageAdapter;
+import hitec.com.db.MessageDB;
 import hitec.com.event.GetUserMessagesEvent;
 import hitec.com.model.MessageItem;
 import hitec.com.proxy.BaseProxy;
@@ -38,6 +46,8 @@ public class UserDetailActivity extends AppCompatActivity {
     RecyclerView messageList;
     @Bind(R.id.btn_track_location)
     Button btnTrackLocation;
+    @Bind(R.id.edt_date)
+    EditText edtDate;
 
     private ProgressDialog progressDialog;
     private MessageAdapter adapter;
@@ -46,15 +56,33 @@ public class UserDetailActivity extends AppCompatActivity {
     private String username;
     private int usertype;
 
+    private String date;
+
+    private int year;
+    private int month;
+    private int day;
+
+    private final int DATE_DIALOG_ID = 1;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_user_detail);
 
         ButterKnife.bind(this);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
 
         username = getIntent().getStringExtra("username");
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        getSupportActionBar().setTitle(username);
+
+        final Calendar c = Calendar.getInstance();
+        year = c.get(Calendar.YEAR);
+        month = c.get(Calendar.MONTH);
+        day = c.get(Calendar.DAY_OF_MONTH);
+//        updateDisplay();
+
+        edtDate.setKeyListener(null);
 
         messageList.setHasFixedSize(true);
         mLinearLayoutManager = new LinearLayoutManager(UserDetailActivity.this);
@@ -64,8 +92,10 @@ public class UserDetailActivity extends AppCompatActivity {
 
         usertype = SharedPrefManager.getInstance(this).getUserType();
         if(usertype == 0) {
+            edtDate.setVisibility(View.VISIBLE);
             btnTrackLocation.setVisibility(View.VISIBLE);
         } else {
+            edtDate.setVisibility(View.GONE);
             btnTrackLocation.setVisibility(View.GONE);
         }
 
@@ -85,10 +115,10 @@ public class UserDetailActivity extends AppCompatActivity {
                 String messages = responseVo.messages;
                 refreshList(messages);
             } else {
-                networkError();
+                refreshInLocal();
             }
         } else {
-            networkError();
+            refreshInLocal();
         }
     }
 
@@ -115,11 +145,69 @@ public class UserDetailActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    private DatePickerDialog.OnDateSetListener mDateSetListener = new DatePickerDialog.OnDateSetListener() {
+        @Override
+        public void onDateSet(DatePicker datePicker, int i, int i1, int i2) {
+            year = i;
+            month = i1;
+            day = i2;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    updateDisplay();
+                    getUserMessageByDate(date);
+                }
+            });
+        }
+    };
+
+    private void updateDisplay() {
+        String strYear = "";
+        String strMonth = "";
+        String strDay = "";
+        if(month < 10)
+            strMonth = "0" + String.valueOf(month + 1);
+        else
+            strMonth = String.valueOf(month);
+
+        if(day < 10)
+            strDay = "0" + day;
+        else
+            strDay = String.valueOf(day);
+        date = new StringBuilder().append(year).append("-").append(strMonth).append("-").append(strDay).toString();
+        edtDate.setText(date);
+    }
+
+    @Override
+    protected Dialog onCreateDialog(int id){
+        switch(id) {
+            case DATE_DIALOG_ID:
+                return new DatePickerDialog(UserDetailActivity.this, mDateSetListener, year, month, day);
+        }
+
+        return null;
+    }
+
+    @OnTouch(R.id.edt_date)
+    boolean onTouchDate() {
+        showDialog(DATE_DIALOG_ID);
+
+        return false;
+    }
+
     @OnClick(R.id.btn_track_location)
     void onBtnTrackLocation() {
         Intent intent = new Intent(UserDetailActivity.this, LocationDetailActivity.class);
         intent.putExtra("username", username);
         startActivity(intent);
+    }
+
+    private void getUserMessageByDate(String date) {
+        MessageDB messageDB = new MessageDB(UserDetailActivity.this);
+        ArrayList<MessageItem> items = messageDB.fetchUserMessageByDate(username, date);
+
+        adapter.addItems(items);
+        adapter.notifyDataSetChanged();
     }
 
     private void getUserMessages() {
@@ -132,9 +220,12 @@ public class UserDetailActivity extends AppCompatActivity {
 
     private void refreshList(String users) {
         ArrayList<MessageItem> items = new ArrayList<>();
+        String lastUpdateTime = SharedPrefManager.getInstance(UserDetailActivity.this).getUserMessageUpdateTime(username);
+        String tempTime = lastUpdateTime;
         try {
             JSONArray jsonArray = new JSONArray(users);
             int count = jsonArray.length();
+            MessageDB messageDB = new MessageDB(UserDetailActivity.this);
             for(int i = 0; i < count; i++) {
                 JSONObject json = (JSONObject) jsonArray.get(i);
                 String fromUser = json.getString("from_user");
@@ -150,11 +241,27 @@ public class UserDetailActivity extends AppCompatActivity {
                 item.setImageURL(imageURL);
                 item.setTime(time);
 
+                if(item.getTime().compareTo(lastUpdateTime) > 0) {
+                    messageDB.addMessage(item);
+                    if(item.getTime().compareTo(tempTime) > 0)
+                        tempTime = item.getTime();
+                }
+
                 items.add(item);
             }
         } catch (JSONException ex) {
             ex.printStackTrace();
         }
+        SharedPrefManager.getInstance(UserDetailActivity.this).saveUserMessageUpdateTime(username, tempTime);
+
+        adapter.addItems(items);
+        adapter.notifyDataSetChanged();
+    }
+
+    private void refreshInLocal() {
+        MessageDB messageDB = new MessageDB(UserDetailActivity.this);
+        ArrayList<MessageItem> items = new ArrayList<>();
+        items = messageDB.fetchUserMessage(username);
         adapter.addItems(items);
         adapter.notifyDataSetChanged();
     }

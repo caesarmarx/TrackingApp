@@ -8,6 +8,19 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" >
+        <item name="android:background">@color/colorPrimary</item>
+    </style>
+
+    <style name="AppTheme.PopupOverlay" parent="@android:style/Widget.Holo.ActionBar" >
+        <item name="android:background">@color/colorGray</item>
+    </style>
+
+    <style name="AppTheme.NoActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
     <style name="ButtonDefault">
         <item name="android:layout_height">36dp</item>
         <item name="android:textSize">14sp</item>
@@ -23,14 +36,12 @@
     <style name="TextBranchItem">
         <item name="android:textSize">14sp</item>
         <item name="android:textColor">@color/colorBlack</item>
-        <item name="android:singleLine">true</item>
     </style>
 
     <style name="TextBranch">
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@color/colorBlack</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:singleLine">true</item>
     </style>
 
 </resources>

@@ -51,7 +51,7 @@ public class MessageItem {
         this.time = value;
     }
 
-    public String getTIme() {
+    public String getTime() {
         return time;
     }
 }

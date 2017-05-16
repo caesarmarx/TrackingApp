@@ -101,6 +101,7 @@ public class PostStatusActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        mphoto = null;
 
         edtUsers.setKeyListener(null);
         edtUsers.setOnTouchListener(new View.OnTouchListener() {

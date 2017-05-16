@@ -22,6 +22,7 @@
     <string name="post">Post</string>
     <string name="status_posted">Status Successfully Posted.</string>
     <string name="posting">Posting...</string>
+    <string name="home">Home</string>
 
     <array name="register_result">
         <item>Success</item>
@@ -30,4 +31,7 @@
         <item>Incorrect Password</item>
         <item>Invalid Request</item>
     </array>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
 </resources>

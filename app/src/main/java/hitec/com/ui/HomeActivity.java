@@ -1,5 +1,7 @@
 package hitec.com.ui;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -9,11 +11,17 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.NavigationView;
+import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.Toolbar;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -37,6 +45,9 @@ import hitec.com.adapter.RecentStatusAdapter;
 import hitec.com.adapter.UserAdapter;
 import hitec.com.event.GetRecentStatusEvent;
 import hitec.com.event.GetUsersEvent;
+import hitec.com.fragment.HomeFragment;
+import hitec.com.fragment.MyMessageFragment;
+import hitec.com.fragment.UserFragment;
 import hitec.com.model.RecentStatusItem;
 import hitec.com.model.UserItem;
 import hitec.com.notification.TrackingService;
@@ -49,15 +60,16 @@ import hitec.com.util.SharedPrefManager;
 import hitec.com.vo.GetRecentStatusResponseVO;
 import hitec.com.vo.GetUsersResponseVO;
 
-public class HomeActivity extends AppCompatActivity {
+public class HomeActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener{
 
-    //defining views
-    @Bind(R.id.user_list)
-    RecyclerView userList;
+    @Bind(R.id.toolbar)
+    Toolbar toolBar;
+    @Bind(R.id.drawer_layout)
+    DrawerLayout drawerLayout;
+    @Bind(R.id.nav_view)
+    NavigationView navigationView;
 
-    private ProgressDialog progressDialog;
-    private RecentStatusAdapter adapter;
-    private LinearLayoutManager mLinearLayoutManager;
+    private ActionBarDrawerToggle toggle;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,147 +77,69 @@ public class HomeActivity extends AppCompatActivity {
         setContentView(R.layout.activity_home);
 
         ButterKnife.bind(this);
+        setSupportActionBar(toolBar);
 
-        userList.setHasFixedSize(true);
-        mLinearLayoutManager = new LinearLayoutManager(HomeActivity.this);
-        mLinearLayoutManager.setOrientation(LinearLayoutManager.VERTICAL);
-        userList.setLayoutManager(mLinearLayoutManager);
-        userList.addItemDecoration(new DividerItemDecoration(HomeActivity.this, DividerItemDecoration.VERTICAL_LIST));
+        toggle = new ActionBarDrawerToggle(HomeActivity.this, drawerLayout, toolBar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close) {
 
-        adapter = new RecentStatusAdapter(HomeActivity.this);
-        userList.setAdapter(adapter);
+            public void onDrawerOpened(View drawerView) {
+            }
+        };
 
-        progressDialog = new ProgressDialog(this);
+        drawerLayout.setDrawerListener(toggle);
+        toggle.syncState();
+
+        navigationView.setNavigationItemSelectedListener(HomeActivity.this);
+        navigationView.getMenu().getItem(0).setChecked(true);
         startService(new Intent(HomeActivity.this, TrackingService.class));
     }
 
-    @Subscribe
-    public void onGetRecentStatusEvent(GetRecentStatusEvent event) {
-        hideProgressDialog();
-        GetRecentStatusResponseVO responseVo = event.getResponse();
-        if (responseVo != null) {
-            if(responseVo.success == BaseProxy.RESPONSE_SUCCESS) {
-                String messages = responseVo.messages;
-                refreshList(messages);
-            } else {
-                networkError();
-            }
-        } else {
-            networkError();
-        }
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        FragmentManager manager = getFragmentManager();
+        manager.beginTransaction()
+                .replace(R.id.main_frame, HomeFragment.newInstance())
+                .commit();
     }
 
     @Override
-    public void onResume() {
-        super.onResume();
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int selectedIndex = -1;
 
-        getRecentStatus();
-        EventBus.getDefault().register(this);
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-
-        EventBus.getDefault().unregister(this);
-    }
-
-    @OnClick(R.id.btn_view_users)
-    void onBtnClickViewUsers() {
-        Intent intent = new Intent(HomeActivity.this, UserListActivity.class);
-        startActivity(intent);
-    }
-
-    @OnClick(R.id.btn_view_my_messages)
-    void onBtnClickMyMessages() {
-        String username = SharedPrefManager.getInstance(HomeActivity.this).getUsername();
-        Intent intent = new Intent(HomeActivity.this, UserDetailActivity.class);
-        intent.putExtra("username", username);
-        startActivity(intent);
-    }
-
-    @OnClick(R.id.btn_post_status)
-    void onBtnClickPostStatus() {
-        Intent intent = new Intent(HomeActivity.this, PostStatusActivity.class);
-        PostStatusActivity.mphoto = null;
-        startActivity(intent);
-    }
-
-    private void getRecentStatus() {
-        progressDialog.setMessage(getResources().getString(R.string.loading));
-        progressDialog.show();
-        GetRecentStatusTask task = new GetRecentStatusTask();
-        String username = SharedPrefManager.getInstance(this).getUsername();
-
-        task.execute(username);
-    }
-
-    private void refreshList(String messages) {
-        ArrayList<RecentStatusItem> items = new ArrayList<>();
-        try {
-            JSONArray jsonArray = new JSONArray(messages);
-            int count = jsonArray.length();
-            for(int i = 0; i < count; i++) {
-                JSONObject json = (JSONObject) jsonArray.get(i);
-                String fromUser = json.getString("from_user");
-                String toUser = json.getString("to_user");
-                String curUserName = SharedPrefManager.getInstance(this).getUsername();
-
-                RecentStatusItem item = new RecentStatusItem();
-                if(fromUser.equals(curUserName)) {
-                    item.setUserName("To " + toUser);
-                }
-                else {
-                    item.setUserName("From " + fromUser);
-                }
-                item.setMessage(json.getString("message"));
-                item.setImageURL(json.getString("image"));
-                item.setTime(json.getString("time"));
-                items.add(item);
-            }
-        } catch (JSONException ex) {
-            ex.printStackTrace();
+        Fragment fragment = null;
+        switch (item.getItemId()) {
+            case R.id.nav_home:
+                fragment = HomeFragment.newInstance();
+                getSupportActionBar().setTitle(R.string.app_name);
+                break;
+            case R.id.nav_users:
+                fragment = UserFragment.newInstance();
+                getSupportActionBar().setTitle(R.string.hint_users);
+                break;
+            case R.id.nav_my_message:
+                fragment = MyMessageFragment.newInstance();
+                getSupportActionBar().setTitle(R.string.view_my_messages);
+                break;
+            case R.id.nav_post_status:
+                Intent intent = new Intent(HomeActivity.this, PostStatusActivity.class);
+                startActivity(intent);
+                break;
+            default:
+                break;
         }
-        adapter.addItems(items);
-        adapter.notifyDataSetChanged();
-    }
 
-    private void hideProgressDialog() {
-        if(progressDialog.isShowing())
-            progressDialog.dismiss();
-    }
+        invalidateOptionsMenu();
 
-    private void networkError() {
-        ApplicationContext.showToastMessage(HomeActivity.this, getResources().getString(R.string.network_error));
-    }
+        if (fragment != null) {
+            getFragmentManager().beginTransaction()
+                    .replace(R.id.main_frame, fragment)
+                    .commit();
+        }
 
-    public void sendNotification(final String receiver) {
-        //Show Tag Request Dialog
-        LayoutInflater layoutInflater = LayoutInflater.from(HomeActivity.this);
-        View promptView = layoutInflater.inflate(R.layout.dlg_input_tag, null);
-        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(HomeActivity.this);
-        alertDialogBuilder.setView(promptView);
+        drawerLayout.closeDrawers();
 
-        final EditText edtTag = (EditText) promptView.findViewById(R.id.edt_tag);
-
-        alertDialogBuilder.setCancelable(false)
-                .setTitle(R.string.input_tag)
-                .setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        String sender = SharedPrefManager.getInstance(HomeActivity.this).getUsername();
-                        String message = edtTag.getText().toString();
-                        SendNotificationTask task = new SendNotificationTask();
-                        task.execute(sender, receiver, message);
-                    }
-                })
-                .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        dialogInterface.dismiss();
-                    }
-                });
-        final AlertDialog alertDialog = alertDialogBuilder.create();
-        alertDialog.show();
+        return true;
     }
 }
